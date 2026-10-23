@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. /etc/apache2/envvars
+
+# exec (not apache2ctl, which forks) so apache2 replaces this shell and receives the
+# container's stop signal
+exec /usr/sbin/apache2 -D FOREGROUND "$@"

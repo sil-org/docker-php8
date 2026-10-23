@@ -86,7 +86,12 @@ chmod 755 config-shim
 mv config-shim /usr/local/bin
 EOF
 
+# Install apache2-foreground
+COPY apache2-foreground /usr/local/bin/
+RUN chmod a+rx /usr/local/bin/apache2-foreground
+
 EXPOSE 80
 
 # By default, simply start apache.
-CMD /usr/sbin/apache2ctl -D FOREGROUND
+# Exec form; shell form would keep `sh -c` as PID 1, which ignores the stop signal.
+CMD ["apache2-foreground"]

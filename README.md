@@ -48,7 +48,7 @@ COPY application/ /data/
 
 WORKDIR /data
 EXPOSE 80
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+CMD ["apache2-foreground"]
 ```
 
 ## Example vhost file

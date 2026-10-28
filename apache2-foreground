@@ -2,6 +2,11 @@
 
 . /etc/apache2/envvars
 
+# Match apache2ctl, which sets the open-files limit to 8192 when run as root
+if [ "$(id -u)" -eq 0 ]; then
+    ulimit -n 8192
+fi
+
 # exec (not apache2ctl, which forks) so apache2 replaces this shell and receives the
 # container's stop signal
 exec /usr/sbin/apache2 -D FOREGROUND "$@"

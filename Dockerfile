@@ -87,8 +87,7 @@ mv config-shim /usr/local/bin
 EOF
 
 # Install apache2-foreground
-COPY apache2-foreground /usr/local/bin/
-RUN chmod a+rx /usr/local/bin/apache2-foreground
+COPY --chmod=755 apache2-foreground /usr/local/bin/
 
 EXPOSE 80
 

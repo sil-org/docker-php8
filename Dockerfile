@@ -10,40 +10,42 @@ ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"
 
 # Install OS packages
 # Specific php versions are not required as ubuntu is feature complete
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ca-certificates \
+    gnupg \
     git \
     jq \
-    libapache2-mod-php \
     locales \
     nano \
-    php \
-    php-cli \
-    php-curl \
-    php-intl \
-    php-ldap \
-    php-mbstring \
-    php-mcrypt \
-    php-mysql \
-    php-sqlite3 \
-    php-gmp \
-    php-xml \
-    php-zip \
     s3cmd \
     unzip \
     zip \
-    # Force security upgrades
     openssl \
     libssl3 \
     apache2 \
+    && curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://sury.org \
+    && echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://sury.org noble main" \
+    > /etc/apt/sources.list.d/php.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    libapache2-mod-php8.3 \
+    php8.3 \
+    php8.3-cli \
+    php8.3-curl \
+    php8.3-intl \
+    php8.3-ldap \
+    php8.3-mbstring \
+    php8.3-mcrypt \
+    php8.3-mysql \
+    php8.3-sqlite3 \
+    php8.3-gmp \
+    php8.3-xml \
+    php8.3-zip \
     && phpenmod mcrypt \
-    # Update the /etc/default/locale file
-    # removing locales causes issues
     && locale-gen en_US.UTF-8 \
     && update-locale LANG="$LANG" \
     && update-locale LANGUAGE="$LANGUAGE" \
     && update-locale LC_ALL="$LC_ALL" \
-    # Clean up to reduce docker image size
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

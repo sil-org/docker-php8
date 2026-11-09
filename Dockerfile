@@ -1,7 +1,6 @@
 FROM ubuntu:24.04
 LABEL maintainer="gtis_itse_support@sil.org"
 
-ENV REFRESHED_AT 2024-09-11
 ENV HTTPD_PREFIX /etc/apache2
 ENV DEBIAN_FRONTEND noninteractive
 

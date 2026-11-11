@@ -1,6 +1,8 @@
 FROM ubuntu:24.04
 LABEL maintainer="gtis_itse_support@sil.org"
 
+ARG PHP_VERSION=8.3
+
 ENV HTTPD_PREFIX /etc/apache2
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -8,7 +10,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"
 
 # Install OS packages
-# Specific php versions are not required as ubuntu is feature complete
+# PHP comes from packages.sury.org to get the latest upstream patch release
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
@@ -23,25 +25,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     libssl3 \
     apache2 \
-    && curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://sury.org \
-    && echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://sury.org noble main" \
+    # Ondřej Surý's PHP repository (replaces the retiring ppa:ondrej/php)
+    && curl -fsSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb \
+    && dpkg -i /tmp/debsuryorg-archive-keyring.deb \
+    && rm /tmp/debsuryorg-archive-keyring.deb \
+    && echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
     > /etc/apt/sources.list.d/php.list \
     && apt-get update && apt-get install -y --no-install-recommends \
-    libapache2-mod-php8.3 \
-    php8.3 \
-    php8.3-cli \
-    php8.3-curl \
-    php8.3-intl \
-    php8.3-ldap \
-    php8.3-mbstring \
-    php8.3-mcrypt \
-    php8.3-mysql \
-    php8.3-sqlite3 \
-    php8.3-gmp \
-    php8.3-xml \
-    php8.3-zip \
+    libapache2-mod-php${PHP_VERSION} \
+    php${PHP_VERSION} \
+    php${PHP_VERSION}-cli \
+    php${PHP_VERSION}-curl \
+    php${PHP_VERSION}-intl \
+    php${PHP_VERSION}-ldap \
+    php${PHP_VERSION}-mbstring \
+    php${PHP_VERSION}-mcrypt \
+    php${PHP_VERSION}-mysql \
+    php${PHP_VERSION}-sqlite3 \
+    php${PHP_VERSION}-gmp \
+    php${PHP_VERSION}-xml \
+    php${PHP_VERSION}-zip \
     && phpenmod mcrypt \
-    && locale-gen en_US.UTF-8 \
+    && locale-gen "$LANG" \
     && update-locale LANG="$LANG" \
     && update-locale LANGUAGE="$LANGUAGE" \
     && update-locale LC_ALL="$LC_ALL" \
@@ -68,11 +73,11 @@ RUN a2dismod autoindex -f
 RUN a2enmod expires headers rewrite
 
 # Remove default ssl key
-RUN rm /etc/ssl/private/*
+RUN rm -f /etc/ssl/private/*
 
 # Copy in any additional PHP ini files to the folders where they will be found.
-COPY conf/*.ini /etc/php/8.3/apache2/conf.d/
-COPY conf/*.ini /etc/php/8.3/cli/conf.d/
+COPY conf/*.ini /etc/php/${PHP_VERSION}/apache2/conf.d/
+COPY conf/*.ini /etc/php/${PHP_VERSION}/cli/conf.d/
 
 COPY vhost.conf /etc/apache2/sites-enabled/
 

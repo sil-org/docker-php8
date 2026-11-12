@@ -1,7 +1,9 @@
 FROM ubuntu:24.04
 LABEL maintainer="gtis_itse_support@sil.org"
 
-ENV REFRESHED_AT 2024-09-11
+ARG PHP_VERSION=8.3
+ENV PHP_VERSION=${PHP_VERSION}
+
 ENV HTTPD_PREFIX /etc/apache2
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -9,41 +11,46 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"
 
 # Install OS packages
-# Specific php versions are not required as ubuntu is feature complete
-RUN apt-get update && apt-get install -y \
+# PHP comes from packages.sury.org to get the latest upstream patch release
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ca-certificates \
+    gnupg \
     git \
     jq \
-    libapache2-mod-php \
     locales \
     nano \
-    php \
-    php-cli \
-    php-curl \
-    php-intl \
-    php-ldap \
-    php-mbstring \
-    php-mcrypt \
-    php-mysql \
-    php-sqlite3 \
-    php-gmp \
-    php-xml \
-    php-zip \
     s3cmd \
     unzip \
     zip \
-    # Force security upgrades
     openssl \
     libssl3 \
     apache2 \
+    # Ondřej Surý's PHP repository (replaces the retiring ppa:ondrej/php)
+    && curl -fsSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb \
+    && dpkg -i /tmp/debsuryorg-archive-keyring.deb \
+    && rm /tmp/debsuryorg-archive-keyring.deb \
+    && echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
+    > /etc/apt/sources.list.d/php.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    libapache2-mod-php${PHP_VERSION} \
+    php${PHP_VERSION} \
+    php${PHP_VERSION}-cli \
+    php${PHP_VERSION}-curl \
+    php${PHP_VERSION}-intl \
+    php${PHP_VERSION}-ldap \
+    php${PHP_VERSION}-mbstring \
+    php${PHP_VERSION}-mcrypt \
+    php${PHP_VERSION}-mysql \
+    php${PHP_VERSION}-sqlite3 \
+    php${PHP_VERSION}-gmp \
+    php${PHP_VERSION}-xml \
+    php${PHP_VERSION}-zip \
     && phpenmod mcrypt \
-    # Update the /etc/default/locale file
-    # removing locales causes issues
-    && locale-gen en_US.UTF-8 \
+    && locale-gen "$LANG" \
     && update-locale LANG="$LANG" \
     && update-locale LANGUAGE="$LANGUAGE" \
     && update-locale LC_ALL="$LC_ALL" \
-    # Clean up to reduce docker image size
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -67,11 +74,11 @@ RUN a2dismod autoindex -f
 RUN a2enmod expires headers rewrite
 
 # Remove default ssl key
-RUN rm /etc/ssl/private/*
+RUN rm -f /etc/ssl/private/*
 
 # Copy in any additional PHP ini files to the folders where they will be found.
-COPY conf/*.ini /etc/php/8.3/apache2/conf.d/
-COPY conf/*.ini /etc/php/8.3/cli/conf.d/
+COPY conf/*.ini /etc/php/${PHP_VERSION}/apache2/conf.d/
+COPY conf/*.ini /etc/php/${PHP_VERSION}/cli/conf.d/
 
 COPY vhost.conf /etc/apache2/sites-enabled/
 

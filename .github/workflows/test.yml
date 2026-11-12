@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(vars.DEFAULT_JOB_TIMEOUT_MINUTES) }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: php8:test
+      - name: Smoke test the image
+        run: |
+          docker run --rm php8:test bash -euo pipefail -c '
+            php -v
+            for ext in curl gmp intl ldap mbstring mcrypt mysqli pdo_sqlite xml zip; do
+              php -m | grep -qix "$ext" || { echo "missing PHP extension: $ext"; exit 1; }
+            done
+            apache2ctl -M 2>/dev/null | grep -q php_module || { echo "Apache PHP module not loaded"; exit 1; }
+            apache2ctl -t
+          '

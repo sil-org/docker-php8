@@ -2,6 +2,7 @@ FROM ubuntu:24.04
 LABEL maintainer="gtis_itse_support@sil.org"
 
 ARG PHP_VERSION=8.3
+ENV PHP_VERSION=${PHP_VERSION}
 
 ENV HTTPD_PREFIX /etc/apache2
 ENV DEBIAN_FRONTEND noninteractive

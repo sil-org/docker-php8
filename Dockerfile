@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     locales \
     nano \
+    patch \
     s3cmd \
     unzip \
     zip \

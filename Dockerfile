@@ -4,8 +4,8 @@ LABEL maintainer="gtis_itse_support@sil.org"
 ARG PHP_VERSION=8.3
 ENV PHP_VERSION=${PHP_VERSION}
 
-ENV HTTPD_PREFIX /etc/apache2
-ENV DEBIAN_FRONTEND noninteractive
+ENV HTTPD_PREFIX=/etc/apache2
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Set up default locale environment variables
 ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"
@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     locales \
     nano \
+    patch \
     s3cmd \
     unzip \
     zip \
